@@ -20,6 +20,7 @@ public class RateFunds {
     public static final String THREE_YEARS_INCREASE_WEIGHT = "threeYearsIncreaseWeight";
     public static final String SINCE_THIS_YEAR_INCREASE_WEIGHT = "sinceThisYearIncreaseWeight";
     public static final String SINCE_FOUND_INCREASE_WEIGHT = "sinceFoundIncreaseWeight";
+    public static final String CUSTOM_DAYS_INCREASE_WEIGHT = "customDaysIncreaseWeight";
 
     private List<Fund> funds;
     private Map<String, Double> factors;
@@ -40,10 +41,11 @@ public class RateFunds {
         Map<String, Double> threeYearIncreaseRates = rate(normalizeIncrease(Fund::getLastThreeYearsIncrease), factors.get(THREE_YEARS_INCREASE_WEIGHT));
         Map<String, Double> sinceThisYearIncreaseRates = rate(normalizeIncrease(Fund::getSinceThisYearIncrease), factors.get(SINCE_THIS_YEAR_INCREASE_WEIGHT));
         Map<String, Double> sinceFoundIncreaseRates = rate(normalizeIncrease(Fund::getSinceFoundIncrease), factors.get(SINCE_FOUND_INCREASE_WEIGHT));
+        Map<String, Double> customDaysIncreaseRates = rate(normalizeIncrease(Fund::getCustomIncrease), factors.get(CUSTOM_DAYS_INCREASE_WEIGHT));
 
         return Stream.of(dailyIncreaseRates, weeklyIncreaseRates, monthlyIncreaseRates, quaterlyIncreaseRates,
                                                   halfYearIncreaseRates,yearlyIncreaseRates, twoYearsIncreaseRates, threeYearIncreaseRates,
-                                                  sinceThisYearIncreaseRates, sinceFoundIncreaseRates).flatMap(m -> m.entrySet().stream())
+                                                  sinceThisYearIncreaseRates, sinceFoundIncreaseRates, customDaysIncreaseRates).flatMap(m -> m.entrySet().stream())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (v1, v2) -> v1 + v2));
 
     }

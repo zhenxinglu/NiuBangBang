@@ -24,6 +24,7 @@ import org.myfunds.data.FundsDataMgr;
 import java.io.*;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -33,6 +34,7 @@ import static java.lang.Double.parseDouble;
 public class MainController {
     private static final String APP_STATE_FILE = "state.properties";
     private static final String FAVORITE_FUNDS_PROP = "favorite.funds";
+    private static final String LAST_SEVERAL_DAYS_PROP = "last.several.days";
 
     @FXML
     private TableView<Fund> table;
@@ -45,6 +47,12 @@ public class MainController {
 
     @FXML
     private TextField weeklyIncreaseWeight;
+
+    @FXML
+    private TextField customDaysTextField;
+    @FXML
+    private TextField customDaysIncreaseWeight;
+
     @FXML
     private TextField monthlyIncreaseWeight;
 
@@ -80,6 +88,7 @@ public class MainController {
     private Set<String> favoriteFunds = new HashSet<>();
     private List<Fund> foundFunds;
     private int foundFundsIndex = -1;
+    private TableColumn<Fund, String> customDaysIncreaseColumn;
 
     public MainController() {
     }
@@ -89,11 +98,18 @@ public class MainController {
         initRateButton();
         loadState();
         initTable();
+        initCustomDaysTextField();
+    }
+    
+    private void initCustomDaysTextField() {
+        TextFormatter<Integer> formatter = new TextFormatter<>(c -> Pattern.matches("\\d*", c.getText()) ? c : null);
+        customDaysTextField.setTextFormatter(formatter);
     }
 
     private void initRateButton() {
         BooleanBinding allWeightsFilledBinding = dailyIncreaseWeight.textProperty().isEmpty()
                                                         .or(weeklyIncreaseWeight.textProperty().isEmpty())
+                                                        .or(customDaysIncreaseWeight.textProperty().isEmpty())
                                                         .or(monthlyIncreaseWeight.textProperty().isEmpty())
                                                         .or(quarterlyIncreaseWeight.textProperty().isEmpty())
                                                         .or(halfYearIncreaseWeight.textProperty().isEmpty())
@@ -132,6 +148,9 @@ public class MainController {
         TableColumn<Fund, String> weeklyIncreaseColumn = new TableColumn<>("周涨幅");
         weeklyIncreaseColumn.setCellValueFactory(new PropertyValueFactory<>("weeklyIncrease"));
 
+        customDaysIncreaseColumn = new TableColumn<>(String.format("近%s天涨幅",customDaysTextField.getText()));
+        customDaysIncreaseColumn.setCellValueFactory(new PropertyValueFactory<>("customIncrease"));
+
         TableColumn<Fund, String> monthlyIncreaseColumn = new TableColumn<>("月涨幅");
         monthlyIncreaseColumn.setCellValueFactory(new PropertyValueFactory<>("monthlyIncrease"));
 
@@ -161,7 +180,7 @@ public class MainController {
 
         ObservableList<TableColumn<Fund, ?>> columns = table.getColumns();
         columns.addAll(ratingColumn,idColumn,nameColumn,dateColumn,netAssetValueColumn, accumulatedNetValueColumn,
-                dailyIncreaseColumn, weeklyIncreaseColumn, monthlyIncreaseColumn, quarterlyIncreaseColumn,
+                dailyIncreaseColumn, weeklyIncreaseColumn, customDaysIncreaseColumn, monthlyIncreaseColumn, quarterlyIncreaseColumn,
                 halfYearIncreaseColumn,lastYearIncreaseColumn, lastTwoYearsIncreaseColumn, lastThreeYearsIncreaseColumn,
                 sinceThisYearIncreaseColumn, sinceFoundIncreaseColumn,feeColumn);
 
@@ -187,7 +206,7 @@ public class MainController {
             return d1.compareTo(d2);
         };
 
-        Stream.of(dailyIncreaseColumn, weeklyIncreaseColumn, monthlyIncreaseColumn,quarterlyIncreaseColumn,
+        Stream.of(dailyIncreaseColumn, weeklyIncreaseColumn, customDaysIncreaseColumn, monthlyIncreaseColumn,quarterlyIncreaseColumn,
                 halfYearIncreaseColumn, lastYearIncreaseColumn, lastTwoYearsIncreaseColumn,
                 lastThreeYearsIncreaseColumn, sinceThisYearIncreaseColumn, sinceFoundIncreaseColumn,feeColumn)
                 .forEach(column -> column.setComparator(percentNumberComparator));
@@ -204,7 +223,7 @@ public class MainController {
 
                             if (isFavoriteFund(item)) {
                                 if (getContextMenu() != null) {
-                                    MenuItem removeFromFavoritesMenuItem = new MenuItem("Remove from favorite");
+                                    MenuItem removeFromFavoritesMenuItem = new MenuItem("从收藏中删除");
                                     removeFromFavoritesMenuItem.setOnAction(event -> {favoriteFunds.remove(getItem().getId()); table.refresh();});
 
                                     getContextMenu().getItems().setAll(removeFromFavoritesMenuItem);
@@ -212,7 +231,7 @@ public class MainController {
                                 setStyle("-fx-background-color:gold");
                             } else {
                                 if (getContextMenu() != null) {
-                                    MenuItem addToFavoritesMenuItem = new MenuItem("Add to favorite");
+                                    MenuItem addToFavoritesMenuItem = new MenuItem("添加到收藏");
                                     addToFavoritesMenuItem.setOnAction(e -> {
                                         favoriteFunds.add(getItem().getId());
                                         table.refresh();
@@ -224,24 +243,12 @@ public class MainController {
                         }
                     };
                     final ContextMenu rowMenu = new ContextMenu();
-//                    addToFavoritesMenuItem = new MenuItem("Add to favorite");
-//                    addToFavoritesMenuItem.setOnAction(e -> {
-//                        favoriteFunds.add(row.getItem().getId());
-//                        table.refresh();
-//                    });
-//
-//                    removeFromFavoritesMenuItem = new MenuItem("Remove from favorite");
-//                    removeFromFavoritesMenuItem.setOnAction(event -> {favoriteFunds.remove(row.getItem().getId()); table.refresh();});
-//
-//                    rowMenu.getItems().addAll(addToFavoritesMenuItem, removeFromFavoritesMenuItem);
 
                     // only display context menu for non-null items:
                     row.contextMenuProperty().bind(
                             Bindings.when(Bindings.isNotNull(row.itemProperty()))
                                     .then(rowMenu)
                                     .otherwise((ContextMenu)null));
-
-
 
                     return row;
                 });
@@ -257,12 +264,12 @@ public class MainController {
 
     @FXML
     public void onRate() {
-        List<String> erros = validateInput();
-        if (erros.isEmpty()) {
+        List<String> errors = validateInput();
+        if (errors.isEmpty()) {
             statusLabel.setText("正在给基金评分...");
 
         } else {
-            System.out.println(erros);
+            System.out.println(errors);
             statusLabel.setText("权重值必须是数字，请重新输入！");
             return;
         }
@@ -306,7 +313,7 @@ public class MainController {
                     stage.getScene().getRoot().setCursor(Cursor.WAIT);
                     setInformation("正在下载今天的基金数据...");
                 });
-                datas = FundsDataFetcher.fetch();
+                datas = FundsDataFetcher.fetch(Integer.parseInt(customDaysTextField.getText()));
             } catch (IOException e) {
                 Platform.runLater(() -> setInformation("下载数据失败!"));
             }
@@ -340,6 +347,7 @@ public class MainController {
         weights.put(RateFunds.THREE_YEARS_INCREASE_WEIGHT, parseDouble(lastThreeYearsIncreaseWeight.getText()));
         weights.put(RateFunds.SINCE_THIS_YEAR_INCREASE_WEIGHT, parseDouble(sinceThisYearIncreaseWeight.getText()));
         weights.put(RateFunds.SINCE_FOUND_INCREASE_WEIGHT, parseDouble(sinceFoundIncreaseWeight.getText()));
+        weights.put(RateFunds.CUSTOM_DAYS_INCREASE_WEIGHT, parseDouble(customDaysIncreaseWeight.getText()));
 
         return weights;
     }
@@ -355,6 +363,12 @@ public class MainController {
         if (error != null) {
             errors.add(error);
         }
+
+        error = hasValidDoubleValue(weeklyIncreaseWeight, "近几天增幅权重不是数字！");
+        if (error != null) {
+            errors.add(error);
+        }
+
         error = hasValidDoubleValue(monthlyIncreaseWeight, "月增幅权重不是数字！");
         if (error != null) {
             errors.add(error);
@@ -427,6 +441,9 @@ public class MainController {
     public void onLoadTodayData() {
         scheduleToDownloadData();
 
+        Platform.runLater(() -> {
+            customDaysIncreaseColumn.setText(String.format("近%s天涨幅", customDaysTextField.getText()));
+        });
     }
 
     public void setFundsData(List<Fund> fundsData) {
@@ -455,12 +472,14 @@ public class MainController {
         try (OutputStream output = new FileOutputStream(stateFile)) {
             Properties prop = new Properties();
 
-            Stream.of(dailyIncreaseWeight, weeklyIncreaseWeight, monthlyIncreaseWeight, quarterlyIncreaseWeight,
+            Stream.of(dailyIncreaseWeight, weeklyIncreaseWeight, customDaysIncreaseWeight, monthlyIncreaseWeight, quarterlyIncreaseWeight,
                     halfYearIncreaseWeight, lastYearIncreaseWeight, lastTwoYearsIncreaseWeight, lastThreeYearsIncreaseWeight,
                     sinceThisYearIncreaseWeight, sinceFoundIncreaseWeight)
                     .forEach(weigthTextField -> prop.setProperty("weight." + weigthTextField.getId(), weigthTextField.getText()));
 
             prop.setProperty(FAVORITE_FUNDS_PROP, String.join("#", favoriteFunds));
+            prop.setProperty(LAST_SEVERAL_DAYS_PROP, customDaysTextField.getText());
+
             prop.store(output, null);
 
         } catch (IOException e) {
@@ -481,11 +500,10 @@ public class MainController {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     private void restoreUiState(Properties properties) {
-        Stream.of(dailyIncreaseWeight, weeklyIncreaseWeight, monthlyIncreaseWeight, quarterlyIncreaseWeight,
+        Stream.of(dailyIncreaseWeight, weeklyIncreaseWeight, customDaysIncreaseWeight, monthlyIncreaseWeight, quarterlyIncreaseWeight,
                 halfYearIncreaseWeight, lastYearIncreaseWeight, lastTwoYearsIncreaseWeight, lastThreeYearsIncreaseWeight,
                 sinceThisYearIncreaseWeight, sinceFoundIncreaseWeight)
                 .forEach(weigthTextField -> {
@@ -493,6 +511,7 @@ public class MainController {
                     weigthTextField.setText(weight);
                 });
 
+        customDaysTextField.setText(properties.getProperty(LAST_SEVERAL_DAYS_PROP, "14"));
     }
 
 

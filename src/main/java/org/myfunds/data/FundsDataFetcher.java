@@ -12,25 +12,32 @@ import java.io.PrintWriter;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class FundsDataFetcher {
     //        full, take 137s
-   private static final String url = "http://fund.eastmoney.com/data/fundranking.html#tall;c0;r;s6yzf;pn10000;ddesc;qsd20200613;qed20210613;qdii;zq;gg;gzbd;gzfs;bbzt;sfbb";
-
-//   private static final String url =    "http://fund.eastmoney.com/data/fundranking.html#tall;c0;r;sqjzf;pn10000;ddesc;qsd20200820;qed20210901;qdii;zq;gg;gzbd;gzfs;bbzt;sfbb";
-
+//   private static final String url = "http://fund.eastmoney.com/data/fundranking.html#tall;c0;r;s6yzf;pn10000;ddesc;qsd20200613;qed20210613;qdii;zq;gg;gzbd;gzfs;bbzt;sfbb";
+   private static final String url = "http://fund.eastmoney.com/data/fundranking.html#tall;c0;r;s6yzf;pn10000;ddesc;qsdSTART_DATE;qedEND_DATE;qdii;zq;gg;gzbd;gzfs;bbzt;sfbb";
     // 50 records
 //    private static final String url = "http://fund.eastmoney.com/data/fundranking.html";
     private static WebClient webClient;
 
-    public static List<String> fetch() throws IOException {
-        //System.out.println("coding:" + System.getProperty("file.encoding"));
+    private static final String QUERY_START_DATE_PLACEHOLDER = "START_DATE";
+    private static final String QUERY_END_DATE_PLACEHOLDER = "END_DATE";
+
+
+
+    public static List<String> fetch(int customDays) throws IOException {
         setupWebClient();
 
-        WebRequest webRequest = new WebRequest(new URL(url));
+        String fetchUrl = constructUrl(customDays);
+        System.out.println("url:" + fetchUrl);
+
+        WebRequest webRequest = new WebRequest(new URL(constructUrl(customDays)));
         webRequest.setCharset(StandardCharsets.UTF_8);
 
         System.out.println("time 1: " + System.currentTimeMillis());
@@ -56,6 +63,16 @@ public class FundsDataFetcher {
         });
 
         return datas;
+    }
+
+    private static String constructUrl(int customDays) {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd");
+        LocalDateTime now = LocalDateTime.now();
+        //if today is 20210924, customDays=7,   startDate=20210916, endDate=20210923
+        String endDate = dtf.format(now.minusDays(1));
+        String startDate = dtf.format(now.minusDays(customDays + 1));
+
+        return url.replace(QUERY_START_DATE_PLACEHOLDER, startDate).replace(QUERY_END_DATE_PLACEHOLDER, endDate);
     }
     
     private static String getDisplayText(HtmlTableCell cell) {
@@ -107,8 +124,8 @@ public class FundsDataFetcher {
     }
 
     public static void main(String[] args) throws IOException {
-        List<String> datas = fetch();
-
-        save(datas);
+        System.out.println(constructUrl(30));
+//        List<String> datas = fetch(14);
+//        save(datas);
     }
 }

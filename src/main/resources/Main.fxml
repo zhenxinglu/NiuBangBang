@@ -1,68 +1,84 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.myfunds.gui.MainController">
+<VBox xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.myfunds.gui.MainController">
     <children>
         <HBox maxWidth="1.7976931348623157E308" style="-fx-border-color: red;">
             <children>
-                <Label text="日增幅权重:" >
+                <Label text="日增幅权重:">
                     <HBox.margin>
                         <Insets left="5.0" />
                     </HBox.margin>
                 </Label>
-                <TextField fx:id="dailyIncreaseWeight" maxWidth="60" text="1" promptText="输入数字">
+                <TextField fx:id="dailyIncreaseWeight" maxWidth="60" promptText="输入数字" text="1">
                     <HBox.margin>
                         <Insets left="5.0" right="15.0" />
                     </HBox.margin>
                 </TextField>
 
                 <Label text="周增幅权重:" />
-                <TextField fx:id="weeklyIncreaseWeight" maxWidth="60" text="6" promptText="输入数字">
+                <TextField fx:id="weeklyIncreaseWeight" maxWidth="60" promptText="输入数字" text="14">
+                    <HBox.margin>
+                        <Insets left="5.0" right="15.0" />
+                    </HBox.margin>
+                </TextField>
+
+                <Label text="近" />
+                <TextField fx:id="customDaysTextField" maxWidth="29" promptText="输入数字" text="14">
+                </TextField>
+                <Label text="天增幅权重:" />
+                <TextField fx:id="customDaysIncreaseWeight" maxWidth="60" promptText="输入数字" text="6">
                     <HBox.margin>
                         <Insets left="5.0" right="15.0" />
                     </HBox.margin>
                 </TextField>
 
                 <Label text="月增幅权重:" />
-                <TextField fx:id="monthlyIncreaseWeight" maxWidth="60" text="2" promptText="输入数字">
+                <TextField fx:id="monthlyIncreaseWeight" maxWidth="60" promptText="输入数字" text="2">
                     <HBox.margin>
                         <Insets left="5.0" right="15.0" />
                     </HBox.margin>
                 </TextField>
 
                 <Label maxWidth="1.7976931348623157E308" text="近3月增幅权重:" />
-                <TextField fx:id="quarterlyIncreaseWeight" maxWidth="60" text="2" promptText="输入数字">
+                <TextField fx:id="quarterlyIncreaseWeight" maxWidth="60" promptText="输入数字" text="2">
                     <HBox.margin>
                         <Insets left="5.0" right="15.0" />
                     </HBox.margin>
                 </TextField>
 
                 <Label text="近半年增幅权重:" />
-                <TextField fx:id="halfYearIncreaseWeight" maxWidth="60" text="1" promptText="输入数字">
+                <TextField fx:id="halfYearIncreaseWeight" maxWidth="60" promptText="输入数字" text="1">
                     <HBox.margin>
                         <Insets left="5.0" right="15.0" />
                     </HBox.margin>
                 </TextField>
 
                 <Label text="近1年增幅权重:" />
-                <TextField fx:id="lastYearIncreaseWeight" maxWidth="60" text="1" promptText="输入数字">
+                <TextField fx:id="lastYearIncreaseWeight" maxWidth="60" promptText="输入数字" text="1">
                     <HBox.margin>
                         <Insets left="5.0" right="15.0" />
                     </HBox.margin>
                 </TextField>
 
                 <Label text="近2年增幅权重:" />
-                <TextField fx:id="lastTwoYearsIncreaseWeight" maxWidth="60" text="1" promptText="输入数字">
+                <TextField fx:id="lastTwoYearsIncreaseWeight" maxWidth="60" promptText="输入数字" text="1">
                     <HBox.margin>
                         <Insets left="5.0" right="15.0" />
                     </HBox.margin>
                 </TextField>
 
                 <Label text="近3年增幅权重:" />
-                <TextField fx:id="lastThreeYearsIncreaseWeight" maxWidth="60" text="1" promptText="输入数字">
+                <TextField fx:id="lastThreeYearsIncreaseWeight" maxWidth="60" promptText="输入数字" text="1">
                     <HBox.margin>
                         <Insets left="5.0" right="15.0" />
                     </HBox.margin>
@@ -70,14 +86,14 @@
 
 
                 <Label text="今年以来增幅权重:" />
-                <TextField fx:id="sinceThisYearIncreaseWeight" maxWidth="60" text="1" promptText="输入数字">
+                <TextField fx:id="sinceThisYearIncreaseWeight" maxWidth="60" promptText="输入数字" text="1">
                     <HBox.margin>
                         <Insets left="5.0" right="15.0" />
                     </HBox.margin>
                 </TextField>
 
                 <Label text="成立以来增幅权重:" />
-                <TextField fx:id="sinceFoundIncreaseWeight" maxWidth="60" text="1" promptText="输入数字">
+                <TextField fx:id="sinceFoundIncreaseWeight" maxWidth="60" promptText="输入数字" text="1">
                     <HBox.margin>
                         <Insets left="5.0" right="15.0" />
                     </HBox.margin>
@@ -103,9 +119,10 @@
 
         <HBox maxWidth="1.7976931348623157E308" style="-fx-border-color: red;">
             <children>
+
             <CheckBox fx:id="showFavoritesOnly" mnemonicParsing="false" onAction="#onShowFavoriteFundsOnlyClicked" text="只显示我的关注">
                <HBox.margin>
-                  <Insets left="5.0" right="10.0" />
+                  <Insets left="5.0" right="25.0" />
                </HBox.margin>
             </CheckBox>
                 <TextField fx:id="searchField" maxWidth="155.0" onKeyPressed="#onSearchFieldKeyPressed" prefHeight="25.0" prefWidth="155.0" promptText="输入基金代码或者名字">
@@ -120,8 +137,7 @@
                 </Button>
 
                 <Button fx:id="loadLocalDataButton" alignment="CENTER_RIGHT" onAction="#onLoadTodayData" text="加载今天数据">
-                    <HBox.margin>:w:wq
-
+                    <HBox.margin>
                         <Insets left="70.0" />
                     </HBox.margin>
                 </Button>
